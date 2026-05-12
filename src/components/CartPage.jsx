@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { getToken, getCurrentUser } from '../services/api';
+
 import axios from 'axios';
 
-const API_URL = 'http://localhost:58296/api';
+const API_URL = 'http://localhost:58514/api';
 
 function CartPage() {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const user = getCurrentUser();
     const token = getToken();
+	const navigate = useNavigate();
 
     useEffect(() => {
         if (user) loadCart();
@@ -41,6 +43,20 @@ function CartPage() {
         }
     };
 
+	const handlePlaceOrder = async () => {
+	    try {
+	        const response = await axios.post(`${API_URL}/orders/checkout/${user.userId}`, {
+	            shippingAddress: "User Address",
+	            paymentMethod: "COD"
+	        }, {
+	            headers: { Authorization: `Bearer ${token}` }
+	        });
+	        alert('Order placed successfully!');
+	        loadCart();
+	    } catch (err) {
+	        alert('Failed to place order');
+	    }
+	};
     // DELETE ITEM
     const removeItem = async (id) => {
         try {
@@ -97,10 +113,10 @@ function CartPage() {
                                     <div style={{ fontWeight: '700', color: '#212121', fontSize: '16px', textAlign: 'right', minWidth: '100px' }}>
                                         ₹{Number(item.product?.price * item.quantity).toLocaleString()}
                                     </div>
-                                    <button onClick={() => removeItem(item.id)}
-                                        style={{ padding: '8px 16px', background: '#FFF3F3', color: '#e74c3c', border: 'none', borderRadius: '2px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', whiteSpace: 'nowrap' }}>
-                                        Remove
-                                    </button>
+									<button onClick={handlePlaceOrder}
+									    style={{ padding: '14px 40px', background: '#ff9f00', color: 'white', border: 'none', borderRadius: '2px', fontWeight: '700', fontSize: '16px', cursor: 'pointer', fontFamily: "'Inter', sans-serif'" }}>
+									    Place Order
+									</button>
                                 </div>
                             ))}
                         </div>

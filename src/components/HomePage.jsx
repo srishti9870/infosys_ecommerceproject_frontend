@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getProducts, getCurrentUser, logoutUser,getToken } from '../services/api';
 import axios from 'axios';
-const API_URL = 'http://localhost:54362/api';
+const API_URL = 'http://localhost:54230/api';
 
 function HomePage() {
     const navigate = useNavigate();

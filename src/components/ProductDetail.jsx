@@ -4,7 +4,7 @@ import { getProductById, getToken, getCurrentUser } from '../services/api';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:58541/api';
+const API_URL = 'http://localhost:64002/api';
 
 function ProductDetail() {
     const { id } = useParams();

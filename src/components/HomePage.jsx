@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getProducts, getCurrentUser, logoutUser,getToken } from '../services/api';
+import { getProducts, getCurrentUser, logoutUser, getToken } from '../services/api';
 import axios from 'axios';
-const API_URL = 'http://localhost:54230/api';
+const API_URL = 'http://localhost:64002/api';
 
 function HomePage() {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
-	const [cartCount, setCartCount] = useState(0);
+    const [cartCount, setCartCount] = useState(0);
     const user = getCurrentUser();
-	
+
 
     const slides = [
         {
@@ -73,39 +73,39 @@ function HomePage() {
         return imgs[index % 2];
     };
 
-	useEffect(() => {
-	    loadProducts();
-	    loadCartCount();
-	    const slideInterval = setInterval(() => {
-	        setCurrentSlide(prev => (prev + 1) % slides.length);
-	    }, 4000);
-	    return () => clearInterval(slideInterval);
-	}, []);
+    useEffect(() => {
+        loadProducts();
+        loadCartCount();
+        const slideInterval = setInterval(() => {
+            setCurrentSlide(prev => (prev + 1) % slides.length);
+        }, 4000);
+        return () => clearInterval(slideInterval);
+    }, []);
 
     const loadProducts = async () => {
         try {
             const data = await getProducts();
             setProducts(data.slice(0, 8));
-        } catch (err) {}
+        } catch (err) { }
     };
 
     const handleLogout = () => {
         logoutUser();
         navigate('/login');
     };
-	const loadCartCount = async () => {
-	    if (!user) return;
-	    try {
-	        const response = await axios.get(`${API_URL}/cart/${user.userId}`, {
-	            headers: { Authorization: `Bearer ${getToken()}` }
-	        });
-	        setCartCount(response.data.length);
-	    } catch (err) {}
-	};
+    const loadCartCount = async () => {
+        if (!user) return;
+        try {
+            const response = await axios.get(`${API_URL}/cart/${user.userId}`, {
+                headers: { Authorization: `Bearer ${getToken()}` }
+            });
+            setCartCount(response.data.length);
+        } catch (err) { }
+    };
 
     return (
         <div style={{ background: '#f1f2f4', minHeight: '100vh', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", overflowX: 'hidden' }}>
-            
+
             {/* TOP BAR */}
             <div style={{ background: '#ffffff', borderBottom: '1px solid #f0f0f0', padding: '8px 0', fontSize: '12px', color: '#666' }}>
                 <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px', display: 'flex', justifyContent: 'space-between' }}>
@@ -125,7 +125,7 @@ function HomePage() {
             {/* NAVBAR */}
             <nav style={{ background: '#2874f0', padding: '12px 0', position: 'sticky', top: 0, zIndex: 1000 }}>
                 <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '30px' }}>
-                    
+
                     {/* LOGO */}
                     <Link to="/home" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px', flexShrink: 0 }}>
                         <span style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', letterSpacing: '-0.5px' }}>e-shop</span>
@@ -134,27 +134,27 @@ function HomePage() {
 
                     {/* SEARCH BAR */}
                     <div style={{ flex: 1, maxWidth: '600px', position: 'relative', minWidth: '280px' }}>
-                        <input 
-                            type="text" 
-                            placeholder="Search for products, brands and more" 
+                        <input
+                            type="text"
+                            placeholder="Search for products, brands and more"
                             style={{
                                 width: '100%', padding: '12px 55px 12px 20px', borderRadius: '2px',
                                 border: 'none', fontSize: '14px', outline: 'none',
                                 boxSizing: 'border-box', fontFamily: "'Inter', sans-serif"
-                            }} 
+                            }}
                         />
                         <button style={{
                             position: 'absolute', right: 0, top: 0, height: '100%',
                             width: '48px', background: 'transparent', border: 'none',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#2874f0"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#2874f0"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></svg>
                         </button>
                     </div>
 
                     {/* RIGHT SIDE - USER, WISHLIST, CART */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '40px', flexShrink: 0 }}>
-                        
+
                         {/* User */}
                         <div style={{ position: 'relative' }} onMouseEnter={() => setShowDropdown(true)} onMouseLeave={() => setShowDropdown(false)}>
                             {user ? (
@@ -176,7 +176,7 @@ function HomePage() {
                             )}
                             {showDropdown && user && (
                                 <div style={{ position: 'absolute', top: '110%', right: 0, background: 'white', borderRadius: '4px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', padding: '12px 0', minWidth: '200px', zIndex: 100 }}>
-                                   {user?.role === 'ADMIN' && ( <Link to="/admin" style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#333', textDecoration: 'none' }}>My Dashboard</Link>)}
+                                    {user?.role === 'ADMIN' && (<Link to="/admin" style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#333', textDecoration: 'none' }}>My Dashboard</Link>)}
                                     <Link to="/orders" style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#333', textDecoration: 'none' }}>Orders</Link>
                                     <div style={{ borderTop: '1px solid #f0f0f0', margin: '8px 0' }}></div>
                                     <span onClick={handleLogout} style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#e74c3c', cursor: 'pointer' }}>Logout</span>
@@ -189,14 +189,14 @@ function HomePage() {
 
                         {/* Cart */}
                         <div style={{ position: 'relative', cursor: 'pointer' }}>
-						<Link to="/cart" style={{ color: 'white', fontSize: '14px', fontWeight: '600', whiteSpace: 'nowrap', cursor: 'pointer', position: 'relative', textDecoration: 'none' }}>
-						    Cart
-						    {cartCount > 0 && (
-						        <span style={{ position: 'absolute', top: '-8px', right: '-12px', background: '#ff6161', color: 'white', fontSize: '10px', padding: '2px 7px', borderRadius: '10px', fontWeight: '700' }}>
-						            {cartCount}
-						        </span>
-						    )}
-						</Link>
+                            <Link to="/cart" style={{ color: 'white', fontSize: '14px', fontWeight: '600', whiteSpace: 'nowrap', cursor: 'pointer', position: 'relative', textDecoration: 'none' }}>
+                                Cart
+                                {cartCount > 0 && (
+                                    <span style={{ position: 'absolute', top: '-8px', right: '-12px', background: '#ff6161', color: 'white', fontSize: '10px', padding: '2px 7px', borderRadius: '10px', fontWeight: '700' }}>
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -211,7 +211,7 @@ function HomePage() {
                     <Link to="/products" style={styles.carouselBtn}>Shop Now</Link>
                 </div>
                 <img src={slides[currentSlide].image} alt="" style={styles.carouselImage} />
-                
+
                 <div style={styles.slideDots}>
                     {slides.map((_, i) => (
                         <button key={i} onClick={() => setCurrentSlide(i)} style={{
@@ -221,8 +221,8 @@ function HomePage() {
                         }}></button>
                     ))}
                 </div>
-                <button onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)} style={{...styles.arrow, left: '20px'}}>‹</button>
-                <button onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)} style={{...styles.arrow, right: '20px'}}>›</button>
+                <button onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)} style={{ ...styles.arrow, left: '20px' }}>‹</button>
+                <button onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)} style={{ ...styles.arrow, right: '20px' }}>›</button>
             </div>
 
             {/* CATEGORIES */}
@@ -309,13 +309,13 @@ function HomePage() {
                     </div>
                     <div>
                         <h4 style={{ fontSize: '13px', color: '#878787', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>About</h4>
-                        {['Contact Us','About Us','Careers','Press','Blog'].map(t => (
+                        {['Contact Us', 'About Us', 'Careers', 'Press', 'Blog'].map(t => (
                             <p key={t} style={{ fontSize: '13px', margin: '10px 0', cursor: 'pointer', fontWeight: '400', lineHeight: '1.8' }}>{t}</p>
                         ))}
                     </div>
                     <div>
                         <h4 style={{ fontSize: '13px', color: '#878787', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Policy</h4>
-                        {['Privacy Policy','Terms of Use','Security','Sitemap','Returns'].map(t => (
+                        {['Privacy Policy', 'Terms of Use', 'Security', 'Sitemap', 'Returns'].map(t => (
                             <p key={t} style={{ fontSize: '13px', margin: '10px 0', cursor: 'pointer', fontWeight: '400', lineHeight: '1.8' }}>{t}</p>
                         ))}
                     </div>

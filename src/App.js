@@ -8,6 +8,7 @@ import HomePage from './components/HomePage';
 import AdminPanel from './components/AdminPanel';
 import ProductDetail from './components/ProductDetail';
 import CartPage from './components/CartPage';
+import OrderSuccess from './components/OrderSuccess';
 function App() {
     return (
         <ThemeProvider>
@@ -20,6 +21,7 @@ function App() {
                     <Route path="/admin" element={<AdminPanel />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
 					<Route path="/cart" element={<CartPage />} />
+					<Route path="/order-success" element={<OrderSuccess />} />
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

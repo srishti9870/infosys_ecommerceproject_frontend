@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate,useNavigate } from 'react-router-dom';
 import { getToken, getCurrentUser } from '../services/api';
-
 import axios from 'axios';
 
-const API_URL = 'http://localhost:58514/api';
+const API_URL = 'http://localhost:64002/api';
 
 function CartPage() {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [orderPlaced, setOrderPlaced] = useState(false);
     const user = getCurrentUser();
     const token = getToken();
 	const navigate = useNavigate();
@@ -30,44 +30,19 @@ function CartPage() {
         }
     };
 
-    // UPDATE QUANTITY
-    const updateQuantity = async (id, newQty) => {
-        if (newQty < 1) return;
-        try {
-            await axios.put(`${API_URL}/cart/${id}`, { quantity: newQty }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            loadCart();
-        } catch (err) {
-            alert('Failed to update');
-        }
-    };
-
 	const handlePlaceOrder = async () => {
 	    try {
 	        const response = await axios.post(`${API_URL}/orders/checkout/${user.userId}`, {
-	            shippingAddress: "User Address",
+	            shippingAddress: "Mumbai, India",
 	            paymentMethod: "COD"
 	        }, {
 	            headers: { Authorization: `Bearer ${token}` }
 	        });
-	        alert('Order placed successfully!');
-	        loadCart();
+	        navigate(`/order-success?id=${response.data.orderId}`);
 	    } catch (err) {
 	        alert('Failed to place order');
 	    }
 	};
-    // DELETE ITEM
-    const removeItem = async (id) => {
-        try {
-            await axios.delete(`${API_URL}/cart/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            loadCart();
-        } catch (err) {
-            alert('Failed to remove');
-        }
-    };
 
     const total = cartItems.reduce((sum, item) => sum + (item.product?.price * item.quantity), 0);
 
@@ -75,60 +50,68 @@ function CartPage() {
 
     return (
         <div style={{ background: '#f1f2f4', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
-            <div style={{ background: '#2874f0', padding: '15px 30px', color: 'white', display: 'flex', justifyContent: 'space-between' }}>
+            {/* Header */}
+            <div style={{ background: '#2874f0', padding: '15px 30px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Link to="/home" style={{ color: 'white', textDecoration: 'none', fontSize: '20px', fontWeight: '800' }}>e-shop</Link>
-                <span style={{ fontSize: '18px', fontWeight: '600' }}>Shopping Cart</span>
+                <span style={{ fontSize: '16px', fontWeight: '600' }}>Shopping Cart ({cartItems.length})</span>
             </div>
 
-            <div style={{ maxWidth: '1000px', margin: '30px auto', padding: '0 20px' }}>
-                {loading ? (
-                    <p style={{ textAlign: 'center', color: '#878787', fontSize: '16px' }}>Loading cart...</p>
-                ) : cartItems.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '80px', background: 'white', borderRadius: '4px' }}>
-                        <p style={{ fontSize: '50px' }}>🛒</p>
-                        <h3 style={{ color: '#212121' }}>Your cart is empty</h3>
+            <div style={{ maxWidth: '800px', margin: '30px auto', padding: '0 20px' }}>
+                
+                {/* Order Success */}
+                {orderPlaced && (
+                    <div style={{ background: '#E8F5E9', padding: '20px', borderRadius: '4px', marginBottom: '20px', textAlign: 'center', border: '1px solid #C8E6C9' }}>
+                        <span style={{ fontSize: '40px' }}>✅</span>
+                        <h3 style={{ color: '#2E7D32', margin: '10px 0' }}>Order Placed Successfully!</h3>
                         <Link to="/home" style={{ color: '#2874f0', textDecoration: 'none', fontWeight: '600' }}>Continue Shopping</Link>
                     </div>
-                ) : (
+                )}
+
+                {loading ? (
+                    <p style={{ textAlign: 'center', color: '#878787' }}>Loading cart...</p>
+                ) : cartItems.length === 0 && !orderPlaced ? (
+                    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'white', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '60px' }}>🛒</span>
+                        <h3 style={{ color: '#212121', marginTop: '15px' }}>Your cart is empty</h3>
+                        <p style={{ color: '#878787', fontSize: '14px' }}>Add items to get started</p>
+                        <Link to="/home" style={{ display: 'inline-block', marginTop: '15px', padding: '12px 30px', background: '#2874f0', color: 'white', textDecoration: 'none', borderRadius: '2px', fontWeight: '600' }}>Shop Now</Link>
+                    </div>
+                ) : !orderPlaced && (
                     <>
-                        <div style={{ background: 'white', borderRadius: '4px', overflow: 'hidden' }}>
+                        {/* Cart Items */}
+                        <div style={{ background: 'white', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
                             {cartItems.map(item => (
-                                <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '20px', borderBottom: '1px solid #f0f0f0', gap: '20px' }}>
-                                    <div style={{ width: '80px', height: '80px', background: '#f5f5f5', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', flexShrink: 0 }}>
-                                        📦
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: '200px' }}>
+                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', borderBottom: '1px solid #f0f0f0' }}>
+                                    <div>
                                         <h4 style={{ margin: '0 0 5px', color: '#212121', fontSize: '15px' }}>{item.product?.name}</h4>
-                                        <p style={{ margin: '0 0 8px', color: '#878787', fontSize: '13px' }}>₹{Number(item.product?.price).toLocaleString()} each</p>
-                                        
-                                        {/* QUANTITY SELECTOR */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                style={{ width: '28px', height: '28px', border: '1px solid #e0e0e0', background: '#f5f5f5', cursor: 'pointer', borderRadius: '2px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                                            <span style={{ fontWeight: '700', fontSize: '14px', minWidth: '20px', textAlign: 'center' }}>{item.quantity}</span>
-                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                style={{ width: '28px', height: '28px', border: '1px solid #e0e0e0', background: '#f5f5f5', cursor: 'pointer', borderRadius: '2px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                                        </div>
+                                        <p style={{ margin: 0, color: '#878787', fontSize: '13px' }}>Qty: {item.quantity} × ₹{Number(item.product?.price).toLocaleString()}</p>
                                     </div>
-                                    <div style={{ fontWeight: '700', color: '#212121', fontSize: '16px', textAlign: 'right', minWidth: '100px' }}>
+                                    <span style={{ fontWeight: '700', color: '#212121', fontSize: '16px' }}>
                                         ₹{Number(item.product?.price * item.quantity).toLocaleString()}
-                                    </div>
-									<button onClick={handlePlaceOrder}
-									    style={{ padding: '14px 40px', background: '#ff9f00', color: 'white', border: 'none', borderRadius: '2px', fontWeight: '700', fontSize: '16px', cursor: 'pointer', fontFamily: "'Inter', sans-serif'" }}>
-									    Place Order
-									</button>
+                                    </span>
                                 </div>
                             ))}
                         </div>
 
-                        {/* TOTAL */}
-                        <div style={{ background: 'white', borderRadius: '4px', padding: '20px', marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                            <div>
-                                <span style={{ color: '#878787', fontSize: '14px' }}>Total ({cartItems.length} items): </span>
-                                <span style={{ fontSize: '24px', fontWeight: '800', color: '#212121' }}>₹{total.toLocaleString()}</span>
+                        {/* Total + Place Order */}
+                        <div style={{ background: 'white', borderRadius: '4px', padding: '25px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #f0f0f0' }}>
+                                <span style={{ fontSize: '14px', color: '#878787' }}>Subtotal ({cartItems.length} items)</span>
+                                <span style={{ fontSize: '18px', fontWeight: '700', color: '#212121' }}>₹{total.toLocaleString()}</span>
                             </div>
-                            <button style={{ padding: '14px 40px', background: '#ff9f00', color: 'white', border: 'none', borderRadius: '2px', fontWeight: '700', fontSize: '16px', cursor: 'pointer', fontFamily: "'Inter', sans-serif'" }}>
-                                Place Order
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                <span style={{ fontSize: '13px', color: '#388e3c' }}>🚚 Free Delivery</span>
+                                <span style={{ fontSize: '13px', color: '#388e3c' }}>Saved ₹50</span>
+                            </div>
+                            <button 
+                                onClick={handlePlaceOrder}
+                                style={{ 
+                                    width: '100%', marginTop: '20px', padding: '16px', 
+                                    background: '#ff9f00', color: 'white', border: 'none', 
+                                    borderRadius: '2px', fontWeight: '700', fontSize: '18px', 
+                                    cursor: 'pointer', fontFamily: "'Inter', sans-serif" 
+                                }}>
+                                Place Order • ₹{total.toLocaleString()}
                             </button>
                         </div>
                     </>

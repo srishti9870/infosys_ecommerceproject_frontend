@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getProducts, getCurrentUser, logoutUser, getToken } from '../services/api';
 import axios from 'axios';
-const API_URL = 'http://localhost:64002/api';
+const API_URL = 'http://localhost:8080/api';
 
 function HomePage() {
     const navigate = useNavigate();
@@ -125,7 +125,7 @@ function HomePage() {
             {/* NAVBAR */}
             <nav style={{ background: '#2874f0', padding: '12px 0', position: 'sticky', top: 0, zIndex: 1000 }}>
                 <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '30px' }}>
-
+			
                     {/* LOGO */}
                     <Link to="/home" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px', flexShrink: 0 }}>
                         <span style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', letterSpacing: '-0.5px' }}>e-shop</span>
@@ -178,6 +178,7 @@ function HomePage() {
                                 <div style={{ position: 'absolute', top: '110%', right: 0, background: 'white', borderRadius: '4px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', padding: '12px 0', minWidth: '200px', zIndex: 100 }}>
                                     {user?.role === 'ADMIN' && (<Link to="/admin" style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#333', textDecoration: 'none' }}>My Dashboard</Link>)}
                                     <Link to="/orders" style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#333', textDecoration: 'none' }}>Orders</Link>
+									
                                     <div style={{ borderTop: '1px solid #f0f0f0', margin: '8px 0' }}></div>
                                     <span onClick={handleLogout} style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#e74c3c', cursor: 'pointer' }}>Logout</span>
                                 </div>
@@ -186,7 +187,8 @@ function HomePage() {
 
                         {/* Wishlist */}
                         <span style={{ color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>Wishlist</span>
-
+						<Link to="/orders" style={{ color: 'white', fontSize: '14px', fontWeight: '600', textDecoration: 'none' }}>Orders</Link>
+						<Link to="/profile" style={{ color: 'white', fontSize: '14px', fontWeight: '600', textDecoration: 'none' }}>Profile</Link>
                         {/* Cart */}
                         <div style={{ position: 'relative', cursor: 'pointer' }}>
                             <Link to="/cart" style={{ color: 'white', fontSize: '14px', fontWeight: '600', whiteSpace: 'nowrap', cursor: 'pointer', position: 'relative', textDecoration: 'none' }}>

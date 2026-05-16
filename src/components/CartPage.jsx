@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Navigate,useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { getToken, getCurrentUser } from '../services/api';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:64002/api';
+const API_URL = 'http://localhost:8080/api';
 
 function CartPage() {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [orderPlaced, setOrderPlaced] = useState(false);
     const user = getCurrentUser();
     const token = getToken();
-	const navigate = useNavigate();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (user) loadCart();
@@ -30,20 +29,6 @@ function CartPage() {
         }
     };
 
-	const handlePlaceOrder = async () => {
-	    try {
-	        const response = await axios.post(`${API_URL}/orders/checkout/${user.userId}`, {
-	            shippingAddress: "Mumbai, India",
-	            paymentMethod: "COD"
-	        }, {
-	            headers: { Authorization: `Bearer ${token}` }
-	        });
-	        navigate(`/order-success?id=${response.data.orderId}`);
-	    } catch (err) {
-	        alert('Failed to place order');
-	    }
-	};
-
     const total = cartItems.reduce((sum, item) => sum + (item.product?.price * item.quantity), 0);
 
     if (!token) return <Navigate to="/login" />;
@@ -58,25 +43,16 @@ function CartPage() {
 
             <div style={{ maxWidth: '800px', margin: '30px auto', padding: '0 20px' }}>
                 
-                {/* Order Success */}
-                {orderPlaced && (
-                    <div style={{ background: '#E8F5E9', padding: '20px', borderRadius: '4px', marginBottom: '20px', textAlign: 'center', border: '1px solid #C8E6C9' }}>
-                        <span style={{ fontSize: '40px' }}>✅</span>
-                        <h3 style={{ color: '#2E7D32', margin: '10px 0' }}>Order Placed Successfully!</h3>
-                        <Link to="/home" style={{ color: '#2874f0', textDecoration: 'none', fontWeight: '600' }}>Continue Shopping</Link>
-                    </div>
-                )}
-
                 {loading ? (
                     <p style={{ textAlign: 'center', color: '#878787' }}>Loading cart...</p>
-                ) : cartItems.length === 0 && !orderPlaced ? (
+                ) : cartItems.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '80px 20px', background: 'white', borderRadius: '4px' }}>
                         <span style={{ fontSize: '60px' }}>🛒</span>
                         <h3 style={{ color: '#212121', marginTop: '15px' }}>Your cart is empty</h3>
                         <p style={{ color: '#878787', fontSize: '14px' }}>Add items to get started</p>
                         <Link to="/home" style={{ display: 'inline-block', marginTop: '15px', padding: '12px 30px', background: '#2874f0', color: 'white', textDecoration: 'none', borderRadius: '2px', fontWeight: '600' }}>Shop Now</Link>
                     </div>
-                ) : !orderPlaced && (
+                ) : (
                     <>
                         {/* Cart Items */}
                         <div style={{ background: 'white', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
@@ -93,25 +69,25 @@ function CartPage() {
                             ))}
                         </div>
 
-                        {/* Total + Place Order */}
+                        {/* Total + Checkout Button */}
                         <div style={{ background: 'white', borderRadius: '4px', padding: '25px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #f0f0f0' }}>
-                                <span style={{ fontSize: '14px', color: '#878787' }}>Subtotal ({cartItems.length} items)</span>
-                                <span style={{ fontSize: '18px', fontWeight: '700', color: '#212121' }}>₹{total.toLocaleString()}</span>
+                                <span style={{ fontSize: '16px', fontWeight: '700', color: '#212121' }}>Total Amount</span>
+                                <span style={{ fontSize: '22px', fontWeight: '800', color: '#212121' }}>₹{total.toLocaleString()}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                                 <span style={{ fontSize: '13px', color: '#388e3c' }}>🚚 Free Delivery</span>
-                                <span style={{ fontSize: '13px', color: '#388e3c' }}>Saved ₹50</span>
+                                <span style={{ fontSize: '13px', color: '#878787' }}>inclusive of all taxes</span>
                             </div>
                             <button 
-                                onClick={handlePlaceOrder}
+                                onClick={() => navigate('/checkout')}
                                 style={{ 
                                     width: '100%', marginTop: '20px', padding: '16px', 
                                     background: '#ff9f00', color: 'white', border: 'none', 
                                     borderRadius: '2px', fontWeight: '700', fontSize: '18px', 
                                     cursor: 'pointer', fontFamily: "'Inter', sans-serif" 
                                 }}>
-                                Place Order • ₹{total.toLocaleString()}
+                                Proceed to Checkout • ₹{total.toLocaleString()}
                             </button>
                         </div>
                     </>

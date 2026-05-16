@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { getToken } from '../services/api';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:64002/api';
+const API_URL = 'http://localhost:8080/api';
 
 function OrderSuccess() {
     const [order, setOrder] = useState(null);
@@ -23,7 +23,8 @@ function OrderSuccess() {
             const response = await axios.get(`${API_URL}/orders/detail/${orderId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setOrder(response.data.order);
+            const data = response.data;
+            setOrder(data.order || data);
         } catch (err) {
             console.error('Failed to load order:', err);
             setError('Failed to load order details');
@@ -35,9 +36,7 @@ function OrderSuccess() {
     if (loading) {
         return (
             <div style={{ background: '#f1f2f4', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }}>
-                <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '18px', color: '#878787' }}>Loading order details...</p>
-                </div>
+                <p style={{ fontSize: '18px', color: '#878787' }}>Loading order details...</p>
             </div>
         );
     }
@@ -53,10 +52,11 @@ function OrderSuccess() {
         );
     }
 
-    const items = order.items || [];
+    const orderData = order.order || order;
+    const items = orderData.items || order.items || [];
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.18;
-    const delivery = 0;
+    const tax = Math.round(subtotal * 0.18);
+    const totalAmount = orderData.totalAmount || order.totalAmount || subtotal + tax;
 
     return (
         <div style={{ background: '#f1f2f4', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
@@ -69,7 +69,7 @@ function OrderSuccess() {
                 <div style={{ background: '#E8F5E9', padding: '25px', borderRadius: '4px', textAlign: 'center', marginBottom: '20px', border: '1px solid #C8E6C9' }}>
                     <span style={{ fontSize: '50px' }}>✅</span>
                     <h2 style={{ color: '#2E7D32', margin: '10px 0', fontSize: '22px' }}>Order Placed Successfully!</h2>
-                    <p style={{ color: '#666', fontSize: '14px' }}>Order ID: #{order.id}</p>
+                    <p style={{ color: '#666', fontSize: '14px' }}>Order ID: #{orderData.id}</p>
                 </div>
 
                 <div style={{ background: 'white', borderRadius: '4px', padding: '25px', marginBottom: '15px' }}>
@@ -106,7 +106,7 @@ function OrderSuccess() {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0 0', marginTop: '10px', borderTop: '2px solid #212121', fontSize: '18px', fontWeight: '800', color: '#212121' }}>
                         <span>Total Amount</span>
-                        <span>₹{Number(order.totalAmount).toLocaleString()}</span>
+                        <span>₹{Number(totalAmount).toLocaleString()}</span>
                     </div>
                 </div>
 
@@ -115,15 +115,15 @@ function OrderSuccess() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
                         <div>
                             <span style={{ color: '#878787' }}>Status: </span>
-                            <span style={{ color: '#388e3c', fontWeight: '700' }}>{order.status}</span>
+                            <span style={{ color: '#388e3c', fontWeight: '700' }}>{orderData.status}</span>
                         </div>
                         <div>
                             <span style={{ color: '#878787' }}>Payment: </span>
-                            <span style={{ color: '#212121', fontWeight: '600' }}>{order.paymentMethod}</span>
+                            <span style={{ color: '#212121', fontWeight: '600' }}>{orderData.paymentMethod}</span>
                         </div>
                         <div>
                             <span style={{ color: '#878787' }}>Date: </span>
-                            <span style={{ color: '#212121', fontWeight: '600' }}>{new Date(order.createdAt).toLocaleDateString()}</span>
+                            <span style={{ color: '#212121', fontWeight: '600' }}>{new Date(orderData.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div>
                             <span style={{ color: '#878787' }}>Items: </span>
@@ -132,7 +132,7 @@ function OrderSuccess() {
                     </div>
                     <div style={{ marginTop: '12px', fontSize: '13px' }}>
                         <span style={{ color: '#878787' }}>Address: </span>
-                        <span style={{ color: '#212121', fontWeight: '600' }}>{order.shippingAddress}</span>
+                        <span style={{ color: '#212121', fontWeight: '600' }}>{orderData.shippingAddress}</span>
                     </div>
                 </div>
 

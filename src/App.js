@@ -9,6 +9,10 @@ import AdminPanel from './components/AdminPanel';
 import ProductDetail from './components/ProductDetail';
 import CartPage from './components/CartPage';
 import OrderSuccess from './components/OrderSuccess';
+import CheckoutPage from './components/CheckoutPage';
+import OrdersPage from './components/OrdersPage';
+import ProfilePage from './components/ProfilePage';
+
 function App() {
     return (
         <ThemeProvider>
@@ -22,6 +26,9 @@ function App() {
                     <Route path="/product/:id" element={<ProductDetail />} />
 					<Route path="/cart" element={<CartPage />} />
 					<Route path="/order-success" element={<OrderSuccess />} />
+					<Route path="/checkout" element={<CheckoutPage />} />
+					<Route path="/orders" element={<OrdersPage />} />
+					<Route path="/profile" element={<ProfilePage />} />
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

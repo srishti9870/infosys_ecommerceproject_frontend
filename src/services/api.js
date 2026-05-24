@@ -39,9 +39,12 @@ export const getProducts = async () => {
     const response = await axios.get(`${API_URL}/products`, {
         headers: { Authorization: `Bearer ${token}` }
     });
+    // If response has products array (pagination), return products
+    if (response.data.products) {
+        return response.data.products;
+    }
     return response.data;
 };
-
 export const getProductById = async (id) => {
     const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/products/${id}`, {

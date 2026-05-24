@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getProducts, getCurrentUser, logoutUser, getToken } from '../services/api';
 import axios from 'axios';
+import { useTheme } from '../context/ThemeContext';
+import ThemeToggle from './ui/ThemeToggle';
+
 const API_URL = 'http://localhost:8080/api';
 
 function HomePage() {
@@ -9,367 +12,341 @@ function HomePage() {
     const [products, setProducts] = useState([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [testimonialIndex, setTestimonialIndex] = useState(0);
     const [cartCount, setCartCount] = useState(0);
     const user = getCurrentUser();
+    const token = getToken();
+	const theme = useTheme();
+	const c = theme.colors;
 
+	
 
     const slides = [
         {
-            title: 'Top Selling Smartphones',
-            subtitle: 'Starting from just ₹6,999',
-            tag: 'Mega Sale',
-            image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80',
-            bg: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+            tag: 'New Collection 2026',
+            title: 'Elevate Your Lifestyle',
+            subtitle: 'Discover premium products curated for the modern you',
+            image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1400&q=80',
+            cta: 'Explore Collection',
+            secondaryCta: 'View Deals'
         },
         {
-            title: 'Premium Audio Experience',
-            subtitle: 'Wireless earbuds & headphones up to 50% off',
-            tag: 'New Launch',
-            image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
-            bg: 'linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%)'
+            tag: 'Exclusive Offer',
+            title: 'Up to 40% Off',
+            subtitle: 'Limited time deals on top brands and premium items',
+            image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1400&q=80',
+            cta: 'Shop Sale',
+            secondaryCta: 'Learn More'
         },
         {
-            title: 'Laptops for Every Need',
-            subtitle: 'From work to gaming, find your perfect match',
-            tag: 'Special Offer',
-            image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&q=80',
-            bg: 'linear-gradient(135deg, #1a1a2e 0%, #0f0f23 100%)'
+            tag: 'Free Shipping',
+            title: 'Delivered to Your Door',
+            subtitle: 'Free express delivery on all orders above ₹999',
+            image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1400&q=80',
+            cta: 'Start Shopping',
+            secondaryCta: 'See Details'
         },
-        {
-            title: 'Style Meets Comfort',
-            subtitle: 'Trending fashion & accessories collection',
-            tag: 'Trending',
-            image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&q=80',
-            bg: 'linear-gradient(135deg, #16213e 0%, #1a1a2e 100%)'
-        }
     ];
 
-    const allCategories = [
-        { name: 'Smartphones', image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=300&q=80' },
-        { name: 'Laptops', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&q=80' },
-        { name: 'Headphones', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80' },
-        { name: 'Smartwatches', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&q=80' },
-        { name: 'Cameras', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&q=80' },
-        { name: 'Fashion', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&q=80' },
-        { name: 'Sports', image: 'https://images.unsplash.com/photo-1461896836934-bd45ba4fcf69?w=300&q=80' },
-        { name: 'Home', image: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=300&q=80' },
-        { name: 'Beauty', image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc8?w=300&q=80' },
-        { name: 'Books', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&q=80' },
+    const testimonials = [
+        { name: 'Priya Sharma', role: 'Verified Buyer', text: 'Exceptional quality and lightning-fast delivery. The packaging was premium and the product exceeded my expectations.' },
+        { name: 'Rahul Mehta', role: 'Premium Member', text: 'Best online shopping experience I have ever had. The curated collections are absolutely stunning.' },
+        { name: 'Ananya Patel', role: 'Regular Customer', text: 'Outstanding customer service and product quality. I recommend e-shop to everyone I know.' },
     ];
 
-    const getProductImage = (category, index) => {
-        const images = {
-            'Smartphones': ['https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&q=80', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80'],
-            'Electronics': ['https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80', 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&q=80'],
-            'Headphones': ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80', 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80'],
-            'Laptops': ['https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80', 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=400&q=80'],
-            'Fashion': ['https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80', 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80'],
-            'Sports': ['https://images.unsplash.com/photo-1461896836934-bd45ba4fcf69?w=400&q=80', 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80'],
-            'Beauty': ['https://images.unsplash.com/photo-1522335789203-aabd1fc54bc8?w=400&q=80', 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=80'],
-            'Home': ['https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80', 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80'],
-            'Books': ['https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&q=80', 'https://images.unsplash.com/photo-1526243741027-444d633d7365?w=400&q=80'],
-        };
-        const imgs = images[category] || ['https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&q=80', 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80'];
-        return imgs[index % 2];
-    };
+    const categories = [
+        { name: 'Smartphones', image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&q=80', count: '120+ Products' },
+        { name: 'Laptops', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80', count: '85+ Products' },
+        { name: 'Audio', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80', count: '200+ Products' },
+        { name: 'Wearables', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80', count: '55+ Products' },
+        { name: 'Fashion', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80', count: '300+ Products' },
+        { name: 'Sports', image: 'https://images.unsplash.com/photo-1461896836934-bd45ba4fcf69?w=400&q=80', count: '95+ Products' },
+    ];
 
     useEffect(() => {
         loadProducts();
-        loadCartCount();
-        const slideInterval = setInterval(() => {
-            setCurrentSlide(prev => (prev + 1) % slides.length);
-        }, 4000);
-        return () => clearInterval(slideInterval);
+        const slideInterval = setInterval(() => setCurrentSlide(prev => (prev + 1) % slides.length), 5000);
+        const testimonialInterval = setInterval(() => setTestimonialIndex(prev => (prev + 1) % testimonials.length), 4000);
+        window.addEventListener('scroll', () => setScrolled(window.scrollY > 60));
+        return () => { clearInterval(slideInterval); clearInterval(testimonialInterval); };
     }, []);
 
     const loadProducts = async () => {
         try {
-            const data = await getProducts();
-            setProducts(data.slice(0, 8));
-        } catch (err) { }
+            const res = await axios.get(`${API_URL}/products?page=0&size=8`);
+            const data = res.data.products || res.data || [];
+            setProducts(Array.isArray(data) ? data.slice(0, 8) : []);
+        } catch (err) {}
     };
 
-    const handleLogout = () => {
-        logoutUser();
-        navigate('/login');
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) navigate(`/products?search=${searchQuery}`);
     };
-    const loadCartCount = async () => {
-        if (!user) return;
-        try {
-            const response = await axios.get(`${API_URL}/cart/${user.userId}`, {
-                headers: { Authorization: `Bearer ${getToken()}` }
-            });
-            setCartCount(response.data.length);
-        } catch (err) { }
+
+    const handleLogout = () => { logoutUser(); navigate('/login'); };
+
+    const getImage = (cat) => {
+        const imgs = {
+            'Smartphones': 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&q=80',
+            'Electronics': 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500&q=80',
+            'Laptops': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&q=80',
+            'Fashion': 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500&q=80',
+            'Sports': 'https://images.unsplash.com/photo-1461896836934-bd45ba4fcf69?w=500&q=80',
+            'Beauty': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc8?w=500&q=80',
+            'Home': 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=500&q=80',
+        };
+        return imgs[cat] || 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=500&q=80';
     };
 
     return (
-        <div style={{ background: '#f1f2f4', minHeight: '100vh', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", overflowX: 'hidden' }}>
-
-            {/* TOP BAR */}
-            <div style={{ background: '#ffffff', borderBottom: '1px solid #f0f0f0', padding: '8px 0', fontSize: '12px', color: '#666' }}>
-                <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px', display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', gap: '25px' }}>
-                        <span style={{ cursor: 'pointer' }}>Become a Seller</span>
-                        <span style={{ cursor: 'pointer' }}>Advertise</span>
-                        <span style={{ cursor: 'pointer' }}>Gift Cards</span>
-                        <span style={{ cursor: 'pointer' }}>Help Center</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '25px' }}>
-                        <span style={{ cursor: 'pointer' }}>Track Order</span>
-                        <span style={{ cursor: 'pointer' }}>English</span>
-                    </div>
-                </div>
-            </div>
+        <div style={{ background: '#faf8ff', fontFamily: "'Inter', sans-serif", overflow: 'hidden' }}>
 
             {/* NAVBAR */}
-            <nav style={{ background: '#2874f0', padding: '12px 0', position: 'sticky', top: 0, zIndex: 1000 }}>
-                <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '30px' }}>
-			
-                    {/* LOGO */}
-                    <Link to="/home" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px', flexShrink: 0 }}>
-                        <span style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', letterSpacing: '-0.5px' }}>e-shop</span>
-                        <span style={{ fontSize: '10px', color: '#c8dfff', fontStyle: 'italic' }}>Explore <span style={{ color: '#ffc107', fontWeight: '700' }}>Plus</span></span>
+            <nav style={{
+                position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+                padding: scrolled ? '8px 0' : '16px 0',
+                background: scrolled ? 'rgba(255,255,255,0.97)' : 'transparent',
+                backdropFilter: scrolled ? 'blur(20px)' : 'none',
+                boxShadow: scrolled ? '0 4px 30px rgba(76,29,149,0.08)' : 'none',
+                borderBottom: scrolled ? '1px solid #e9d5ff' : '1px solid transparent',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}>
+                <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    
+                    <Link to="/home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #4c1d95, #7c3aed)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '18px', boxShadow: '0 8px 25px rgba(76,29,149,0.3)' }}>E</div>
+                        <span style={{ fontSize: '22px', fontWeight: '800', color: scrolled ? '#1a0a2e' : '#fff', letterSpacing: '-0.5px', transition: 'color 0.3s' }}>e-shop</span>
                     </Link>
 
-                    {/* SEARCH BAR */}
-                    <div style={{ flex: 1, maxWidth: '600px', position: 'relative', minWidth: '280px' }}>
-                        <input
-                            type="text"
-                            placeholder="Search for products, brands and more"
+                    <form onSubmit={handleSearch} style={{ flex: '0 1 580px', position: 'relative' }}>
+                        <input type="text" placeholder="Search for products, brands and more..." value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
                             style={{
-                                width: '100%', padding: '12px 55px 12px 20px', borderRadius: '2px',
-                                border: 'none', fontSize: '14px', outline: 'none',
-                                boxSizing: 'border-box', fontFamily: "'Inter', sans-serif"
+                                width: '100%', padding: '13px 52px 13px 20px', borderRadius: '14px',
+                                border: `2px solid ${scrolled ? '#e9d5ff' : 'rgba(255,255,255,0.3)'}`,
+                                outline: 'none', fontSize: '14px', fontFamily: "'Inter', sans-serif",
+                                background: scrolled ? '#faf8ff' : 'rgba(255,255,255,0.15)',
+                                color: scrolled ? '#1a0a2e' : '#fff', transition: 'all 0.3s',
+                                boxSizing: 'border-box', backdropFilter: 'blur(10px)'
                             }}
+                            onFocus={e => { e.target.style.borderColor = '#7c3aed'; e.target.style.background = '#fff'; e.target.style.color = '#1a0a2e'; }}
+                            onBlur={e => { e.target.style.borderColor = scrolled ? '#e9d5ff' : 'rgba(255,255,255,0.3)'; e.target.style.background = scrolled ? '#faf8ff' : 'rgba(255,255,255,0.15)'; e.target.style.color = scrolled ? '#1a0a2e' : '#fff'; }}
                         />
-                        <button style={{
-                            position: 'absolute', right: 0, top: 0, height: '100%',
-                            width: '48px', background: 'transparent', border: 'none',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#2874f0"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></svg>
-                        </button>
-                    </div>
+                        <button type="submit" style={{ position: 'absolute', right: '4px', top: '4px', bottom: '4px', width: '44px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #4c1d95, #7c3aed)', color: '#fff', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s' }}
+                            onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+                            onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                        >⌕</button>
+                    </form>
 
-                    {/* RIGHT SIDE - USER, WISHLIST, CART */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '40px', flexShrink: 0 }}>
-
-                        {/* User */}
-                        <div style={{ position: 'relative' }} onMouseEnter={() => setShowDropdown(true)} onMouseLeave={() => setShowDropdown(false)}>
-                            {user ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '5px 0' }}>
-                                    <div style={{
-                                        width: '34px', height: '34px', borderRadius: '50%',
-                                        background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.5)',
-                                        color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '15px', fontWeight: '700'
-                                    }}>
-                                        {user?.username?.charAt(0).toUpperCase()}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+					
+						<ThemeToggle />
+						
+                        {['Home', 'Wishlist', 'Orders', 'Cart'].map(l => (
+                            <Link key={l} to={`/${l.toLowerCase() === 'home' ? 'home' : l.toLowerCase()}`} style={{
+                                color: scrolled ? '#6b7280' : 'rgba(255,255,255,0.85)', textDecoration: 'none',
+                                fontWeight: '500', fontSize: '13px', padding: '9px 15px', borderRadius: '10px',
+                                transition: 'all 0.25s',
+                            }}
+                                onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.color = '#fff'; }}
+                                onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = scrolled ? '#6b7280' : 'rgba(255,255,255,0.85)'; }}
+                            >{l}</Link>
+                        ))}
+                        {token ? (
+                            <div style={{ position: 'relative', marginLeft: '8px' }} onMouseEnter={() => setShowDropdown(true)} onMouseLeave={() => setShowDropdown(false)}>
+                                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #4c1d95, #7c3aed)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(76,29,149,0.3)', transition: 'transform 0.2s' }}
+                                    onMouseEnter={e => e.target.style.transform = 'scale(1.08)'}
+                                    onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                                >{user?.username?.charAt(0).toUpperCase()}</div>
+                                {showDropdown && (
+                                    <div style={{ position: 'absolute', top: '50px', right: 0, background: '#fff', borderRadius: '14px', boxShadow: '0 20px 60px rgba(76,29,149,0.2)', padding: '8px', minWidth: '170px', zIndex: 10, border: '1px solid #e9d5ff' }}>
+                                        <Link to="/profile" style={dd}>👤 Profile</Link>
+                                        <Link to="/orders" style={dd}>📋 Orders</Link>
+                                        {user?.role === 'ADMIN' && <Link to="/admin" style={dd}>📊 Admin Panel</Link>}
+                                        <div style={{ borderTop: '1px solid #e9d5ff', margin: '4px 0' }}></div>
+                                        <span onClick={handleLogout} style={{...dd, color: '#dc2626'}}>🚪 Logout</span>
                                     </div>
-                                    <span style={{ color: 'white', fontSize: '14px', fontWeight: '600' }}>{user.username}</span>
-                                </div>
-                            ) : (
-                                <Link to="/login" style={{ color: '#2874f0', background: 'white', padding: '8px 30px', borderRadius: '2px', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
-                                    Login
-                                </Link>
-                            )}
-                            {showDropdown && user && (
-                                <div style={{ position: 'absolute', top: '110%', right: 0, background: 'white', borderRadius: '4px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', padding: '12px 0', minWidth: '200px', zIndex: 100 }}>
-                                    {user?.role === 'ADMIN' && (<Link to="/admin" style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#333', textDecoration: 'none' }}>My Dashboard</Link>)}
-                                    <Link to="/orders" style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#333', textDecoration: 'none' }}>Orders</Link>
-									
-                                    <div style={{ borderTop: '1px solid #f0f0f0', margin: '8px 0' }}></div>
-                                    <span onClick={handleLogout} style={{ display: 'block', padding: '10px 25px', fontSize: '14px', color: '#e74c3c', cursor: 'pointer' }}>Logout</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Wishlist */}
-                        <span style={{ color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>Wishlist</span>
-						<Link to="/orders" style={{ color: 'white', fontSize: '14px', fontWeight: '600', textDecoration: 'none' }}>Orders</Link>
-						<Link to="/profile" style={{ color: 'white', fontSize: '14px', fontWeight: '600', textDecoration: 'none' }}>Profile</Link>
-                        {/* Cart */}
-                        <div style={{ position: 'relative', cursor: 'pointer' }}>
-                            <Link to="/cart" style={{ color: 'white', fontSize: '14px', fontWeight: '600', whiteSpace: 'nowrap', cursor: 'pointer', position: 'relative', textDecoration: 'none' }}>
-                                Cart
-                                {cartCount > 0 && (
-                                    <span style={{ position: 'absolute', top: '-8px', right: '-12px', background: '#ff6161', color: 'white', fontSize: '10px', padding: '2px 7px', borderRadius: '10px', fontWeight: '700' }}>
-                                        {cartCount}
-                                    </span>
                                 )}
-                            </Link>
-                        </div>
+                            </div>
+                        ) : (
+                            <Link to="/login" style={{ marginLeft: '8px', padding: '10px 22px', background: 'linear-gradient(135deg, #4c1d95, #7c3aed)', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: '600', fontSize: '13px', boxShadow: '0 6px 20px rgba(76,29,149,0.3)', transition: 'all 0.3s' }}
+                                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 10px 30px rgba(76,29,149,0.4)'; }}
+                                onMouseLeave={e => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 6px 20px rgba(76,29,149,0.3)'; }}
+                            >Sign In</Link>
+                        )}
                     </div>
                 </div>
             </nav>
 
-            {/* CAROUSEL */}
-            <div style={{ ...styles.carousel, background: slides[currentSlide].bg }}>
-                <div style={styles.carouselContent}>
-                    <span style={styles.carouselTag}>{slides[currentSlide].tag}</span>
-                    <h1 style={styles.carouselTitle}>{slides[currentSlide].title}</h1>
-                    <p style={styles.carouselSub}>{slides[currentSlide].subtitle}</p>
-                    <Link to="/products" style={styles.carouselBtn}>Shop Now</Link>
-                </div>
-                <img src={slides[currentSlide].image} alt="" style={styles.carouselImage} />
+            {/* HERO CAROUSEL */}
+            <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
+                {slides.map((slide, i) => (
+                    <div key={i} style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        opacity: i === currentSlide ? 1 : 0,
+                        transform: i === currentSlide ? 'scale(1)' : 'scale(1.05)',
+                        transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        background: `linear-gradient(135deg, rgba(15,10,26,0.75), rgba(45,27,78,0.6)), url(${slide.image}) center/cover no-repeat`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                        <div style={{ textAlign: 'center', color: '#fff', maxWidth: '750px', padding: '0 40px', animation: i === currentSlide ? 'fadeInUp 0.8s ease' : 'none' }}>
+                            <span style={{ display: 'inline-block', padding: '8px 20px', background: 'rgba(167,139,250,0.2)', borderRadius: '25px', fontSize: '12px', fontWeight: '700', letterSpacing: '3px', marginBottom: '30px', border: '1px solid rgba(167,139,250,0.3)', textTransform: 'uppercase', backdropFilter: 'blur(10px)' }}>{slide.tag}</span>
+                            <h1 style={{ fontSize: '64px', fontWeight: '800', letterSpacing: '-1.5px', marginBottom: '18px', lineHeight: '1.1' }}>{slide.title}</h1>
+                            <p style={{ fontSize: '18px', opacity: '0.85', marginBottom: '40px', fontWeight: '400', lineHeight: '1.6' }}>{slide.subtitle}</p>
+                            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                                <Link to="/products" style={{ padding: '16px 36px', background: '#fff', color: '#4c1d95', borderRadius: '14px', textDecoration: 'none', fontWeight: '700', fontSize: '15px', transition: 'all 0.3s', boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}
+                                    onMouseEnter={e => { e.target.style.transform = 'translateY(-3px)'; e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.25)'; }}
+                                    onMouseLeave={e => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)'; }}
+                                >{slide.cta}</Link>
+                                <Link to="/products" style={{ padding: '16px 36px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '14px', textDecoration: 'none', fontWeight: '600', fontSize: '15px', border: '2px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
+                                    onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.2)'; }}
+                                    onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                                >{slide.secondaryCta}</Link>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                
+                {/* Slide Controls */}
+                <button onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)} style={{ position: 'absolute', left: '30px', top: '50%', transform: 'translateY(-50%)', width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: '26px', cursor: 'pointer', backdropFilter: 'blur(10px)', zIndex: 5, transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.3)'}
+                    onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.15)'}
+                >‹</button>
+                <button onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)} style={{ position: 'absolute', right: '30px', top: '50%', transform: 'translateY(-50%)', width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: '26px', cursor: 'pointer', backdropFilter: 'blur(10px)', zIndex: 5, transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.3)'}
+                    onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.15)'}
+                >›</button>
 
-                <div style={styles.slideDots}>
+                <div style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px', zIndex: 5 }}>
                     {slides.map((_, i) => (
                         <button key={i} onClick={() => setCurrentSlide(i)} style={{
-                            ...styles.dot,
-                            background: i === currentSlide ? '#ffffff' : 'rgba(255,255,255,0.4)',
-                            width: i === currentSlide ? '28px' : '8px'
+                            width: i === currentSlide ? '36px' : '10px', height: '10px',
+                            borderRadius: '5px', border: 'none', cursor: 'pointer',
+                            background: i === currentSlide ? '#fff' : 'rgba(255,255,255,0.4)',
+                            transition: 'all 0.4s',
                         }}></button>
                     ))}
                 </div>
-                <button onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)} style={{ ...styles.arrow, left: '20px' }}>‹</button>
-                <button onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)} style={{ ...styles.arrow, right: '20px' }}>›</button>
             </div>
 
             {/* CATEGORIES */}
-            <section style={{ background: '#ffffff', margin: '10px 0', padding: '25px 0' }}>
-                <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px' }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#212121', marginBottom: '20px' }}>Shop by Category</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '15px' }}>
-                        {allCategories.map((cat, i) => (
-                            <div key={i} style={{ textAlign: 'center', cursor: 'pointer', transition: 'transform 0.2s' }}
-                                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-                                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                                <div style={{ width: '95px', height: '95px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 10px', border: '1px solid #f0f0f0' }}>
-                                    <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                </div>
-                                <p style={{ fontSize: '12px', fontWeight: '600', color: '#212121', margin: 0 }}>{cat.name}</p>
+            <div style={{ maxWidth: '1300px', margin: '80px auto', padding: '0 30px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#7c3aed', letterSpacing: '3px', textTransform: 'uppercase' }}>Categories</span>
+                    <h2 style={{ fontSize: '38px', fontWeight: '800', color: '#1a0a2e', margin: '10px 0', letterSpacing: '-0.5px' }}>Shop by Category</h2>
+                    <p style={{ color: '#6b7280', fontSize: '15px' }}>Find exactly what you're looking for</p>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '20px' }}>
+                    {categories.map((cat, i) => (
+                        <div key={i} style={{ textAlign: 'center', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-6px)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                           >
+                            <div style={{ borderRadius: '20px', overflow: 'hidden', aspectRatio: '1', marginBottom: '12px', border: '2px solid #e9d5ff', boxShadow: '0 10px 30px rgba(76,29,149,0.06)', transition: 'all 0.3s' }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = '#7c3aed'; e.currentTarget.style.boxShadow = '0 20px 50px rgba(76,29,149,0.15)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e9d5ff'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(76,29,149,0.06)'; }}>
+                                <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* FEATURED PRODUCTS */}
-            <section style={{ background: '#ffffff', margin: '10px 0', padding: '25px 0' }}>
-                <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#212121', margin: 0 }}>Featured Products</h2>
-                        <Link to="/products" style={{ background: '#2874f0', color: 'white', padding: '10px 25px', borderRadius: '2px', textDecoration: 'none', fontSize: '13px', fontWeight: '600' }}>View All</Link>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-                        {products.map((p, idx) => (
-                            <Link to={`/product/${p.id}`} key={p.id} style={{ textDecoration: 'none' }}>
-                                <div style={{ border: '1px solid #f0f0f0', borderRadius: '4px', overflow: 'hidden', transition: 'box-shadow 0.3s' }}
-                                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)'}
-                                    onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
-                                    <div style={{ height: '220px', background: '#fafafa', overflow: 'hidden' }}>
-                                        <img src={getProductImage(p.category, idx)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    </div>
-                                    <div style={{ padding: '15px 18px' }}>
-                                        <p style={{ fontSize: '14px', fontWeight: '600', color: '#212121', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</p>
-                                        <p style={{ fontSize: '11px', color: '#878787', margin: '0 0 10px' }}>{p.category}</p>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '17px', fontWeight: '700', color: '#212121' }}>₹{Number(p.price).toLocaleString()}</span>
-                                            <span style={{ fontSize: '11px', color: '#388e3c', fontWeight: '600' }}>In Stock</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* SERVICES BAR */}
-            <div style={{ background: '#ffffff', margin: '10px 0', padding: '35px 0' }}>
-                <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 30px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '40px', textAlign: 'center' }}>
-                    {[
-                        { title: 'Free Delivery', desc: 'For orders above ₹499', icon: '🚚' },
-                        { title: 'Secure Payment', desc: '100% protected transactions', icon: '🔒' },
-                        { title: 'Easy Returns', desc: '30-day return policy', icon: '↩️' },
-                        { title: '24/7 Support', desc: 'Dedicated customer care', icon: '💬' },
-                    ].map((s, i) => (
-                        <div key={i}>
-                            <div style={{ width: '55px', height: '55px', borderRadius: '50%', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px', fontSize: '24px' }}>{s.icon}</div>
-                            <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#212121', margin: '0 0 6px' }}>{s.title}</h4>
-                            <p style={{ fontSize: '12px', color: '#878787', margin: 0 }}>{s.desc}</p>
+                            <p style={{ fontSize: '15px', fontWeight: '600', color: '#4c1d95', marginBottom: '3px' }}>{cat.name}</p>
+                            <p style={{ fontSize: '12px', color: '#a78bfa' }}>{cat.count}</p>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* FEATURED PRODUCTS */}
+            <div style={{ maxWidth: '1300px', margin: '0 auto 80px', padding: '0 30px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '45px' }}>
+                    <div>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: '#7c3aed', letterSpacing: '3px', textTransform: 'uppercase' }}>Featured</span>
+                        <h2 style={{ fontSize: '34px', fontWeight: '800', color: '#1a0a2e', marginTop: '8px' }}>Trending Now</h2>
+                    </div>
+                    <Link to="/products" style={{ padding: '12px 28px', background: '#fff', color: '#4c1d95', border: '2px solid #e9d5ff', borderRadius: '12px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', transition: 'all 0.3s' }}
+                        onMouseEnter={e => { e.target.style.background = '#4c1d95'; e.target.style.color = '#fff'; e.target.style.borderColor = '#4c1d95'; }}
+                        onMouseLeave={e => { e.target.style.background = '#fff'; e.target.style.color = '#4c1d95'; e.target.style.borderColor = '#e9d5ff'; }}
+                    >View All →</Link>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '25px' }}>
+                    {products.map((p, idx) => (
+                        <Link to={`/product/${p.id}`} key={p.id} style={{ textDecoration: 'none' }}>
+                            <div style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden', border: '1px solid #e9d5ff', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 20px rgba(76,29,149,0.04)', cursor: 'pointer' }}
+                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 25px 60px rgba(76,29,149,0.15)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(76,29,149,0.04)'; }}>
+                                <div style={{ height: '250px', overflow: 'hidden', background: '#f5f0ff', position: 'relative' }}>
+                                    <img src={getImage(p.category)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }} />
+                                    {p.stockQuantity <= 5 && p.stockQuantity > 0 && (
+                                        <span style={{ position: 'absolute', top: '12px', left: '12px', padding: '5px 12px', background: '#ff9f00', color: '#fff', borderRadius: '8px', fontSize: '11px', fontWeight: '700' }}>Few Left</span>
+                                    )}
+                                </div>
+                                <div style={{ padding: '20px' }}>
+                                    <span style={{ fontSize: '10px', fontWeight: '700', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '1px' }}>{p.category}</span>
+                                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#1a0a2e', margin: '8px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</h4>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                                        <span style={{ fontSize: '20px', fontWeight: '700', color: '#4c1d95' }}>₹{Number(p.price).toLocaleString()}</span>
+                                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#059669', background: '#ecfdf5', padding: '4px 10px', borderRadius: '6px' }}>In Stock</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+
+            {/* TESTIMONIALS */}
+            <div style={{ background: 'linear-gradient(160deg, #1a0a2e, #2d1b4e, #4c1d95)', padding: '100px 30px', color: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', width: '500px', height: '500px', borderRadius: '50%', background: 'rgba(167,139,250,0.08)', top: '-20%', right: '-15%', filter: 'blur(80px)' }}></div>
+                <div style={{ position: 'absolute', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(167,139,250,0.06)', bottom: '-10%', left: '-10%', filter: 'blur(60px)' }}></div>
+                <div style={{ maxWidth: '750px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#a78bfa', letterSpacing: '3px', textTransform: 'uppercase' }}>Testimonials</span>
+                    <h2 style={{ fontSize: '36px', fontWeight: '800', margin: '15px 0 50px' }}>What Our Customers Say</h2>
+                    <div style={{ minHeight: '180px' }}>
+                        <p style={{ fontSize: '18px', lineHeight: '1.9', opacity: '0.9', fontStyle: 'italic', marginBottom: '30px' }}>"{testimonials[testimonialIndex].text}"</p>
+                        <h4 style={{ fontSize: '17px', fontWeight: '700', marginBottom: '6px' }}>{testimonials[testimonialIndex].name}</h4>
+                        <p style={{ fontSize: '13px', opacity: '0.6', color: '#a78bfa' }}>{testimonials[testimonialIndex].role}</p>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '40px' }}>
+                        {testimonials.map((_, i) => (
+                            <div key={i} onClick={() => setTestimonialIndex(i)} style={{ width: i === testimonialIndex ? '30px' : '10px', height: '10px', borderRadius: '5px', background: i === testimonialIndex ? '#fff' : 'rgba(255,255,255,0.3)', cursor: 'pointer', transition: 'all 0.3s' }}></div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* FOOTER */}
-            <footer style={{ background: '#172337', color: '#ffffff', padding: '50px 30px 30px', marginTop: '10px' }}>
-                <div style={{ maxWidth: '1300px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: '50px' }}>
+            <footer style={{ background: '#0f0a1a', color: '#e9d5ff', padding: '80px 30px 30px' }}>
+                <div style={{ maxWidth: '1300px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '50px' }}>
                     <div>
-                        <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#ffffff', marginBottom: '15px', letterSpacing: '1px' }}>e-shop</h3>
-                        <p style={{ fontSize: '13px', color: '#878787', lineHeight: '1.8', maxWidth: '350px' }}>
-                            Your one-stop destination for electronics, fashion, home essentials and more. Quality products, competitive prices, and exceptional service.
-                        </p>
-                        <div style={{ display: 'flex', gap: '15px', marginTop: '20px', fontSize: '18px' }}>
-                            <span style={{ cursor: 'pointer', background: '#2a3a4a', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>f</span>
-                            <span style={{ cursor: 'pointer', background: '#2a3a4a', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</span>
-                            <span style={{ cursor: 'pointer', background: '#2a3a4a', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📷</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #4c1d95, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '800', fontSize: '18px' }}>E</div>
+                            <span style={{ fontSize: '22px', fontWeight: '800', color: '#fff' }}>e-shop</span>
                         </div>
+                        <p style={{ fontSize: '13px', opacity: '0.7', lineHeight: '1.8', maxWidth: '300px' }}>Premium shopping destination for curated electronics, fashion, and lifestyle products. Quality guaranteed.</p>
                     </div>
-                    <div>
-                        <h4 style={{ fontSize: '13px', color: '#878787', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>About</h4>
-                        {['Contact Us', 'About Us', 'Careers', 'Press', 'Blog'].map(t => (
-                            <p key={t} style={{ fontSize: '13px', margin: '10px 0', cursor: 'pointer', fontWeight: '400', lineHeight: '1.8' }}>{t}</p>
-                        ))}
-                    </div>
-                    <div>
-                        <h4 style={{ fontSize: '13px', color: '#878787', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Policy</h4>
-                        {['Privacy Policy', 'Terms of Use', 'Security', 'Sitemap', 'Returns'].map(t => (
-                            <p key={t} style={{ fontSize: '13px', margin: '10px 0', cursor: 'pointer', fontWeight: '400', lineHeight: '1.8' }}>{t}</p>
-                        ))}
-                    </div>
-                    <div>
-                        <h4 style={{ fontSize: '13px', color: '#878787', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Contact</h4>
-                        <p style={{ fontSize: '13px', margin: '10px 0', lineHeight: '1.8' }}>support@eshop.com</p>
-                        <p style={{ fontSize: '13px', margin: '10px 0', lineHeight: '1.8' }}>1800-123-4567</p>
-                        <p style={{ fontSize: '13px', margin: '10px 0', lineHeight: '1.8' }}>Mumbai, India</p>
-                    </div>
+                    {[
+                        { title: 'Company', links: ['About Us', 'Careers', 'Press', 'Blog'] },
+                        { title: 'Support', links: ['Help Center', 'Returns', 'Shipping Info', 'Contact'] },
+                        { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Security'] },
+                    ].map((col, i) => (
+                        <div key={i}>
+                            <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '700', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '1px' }}>{col.title}</h4>
+                            {col.links.map(l => <p key={l} style={{ fontSize: '13px', margin: '10px 0', cursor: 'pointer', opacity: '0.7', transition: 'opacity 0.3s' }}
+                                onMouseEnter={e => e.target.style.opacity = '1'}
+                                onMouseLeave={e => e.target.style.opacity = '0.7'}
+                            >{l}</p>)}
+                        </div>
+                    ))}
                 </div>
-                <div style={{ borderTop: '1px solid #2a3a4a', marginTop: '40px', paddingTop: '25px', textAlign: 'center', fontSize: '12px', color: '#878787' }}>
-                    © 2026 e-shop. All rights reserved.
+                <div style={{ borderTop: '1px solid rgba(233,213,255,0.1)', marginTop: '60px', paddingTop: '30px', textAlign: 'center', fontSize: '12px', opacity: '0.5' }}>
+                    © 2026 e-shop. All rights reserved. Made with 💜
                 </div>
             </footer>
         </div>
     );
 }
 
-const styles = {
-    carousel: {
-        padding: '50px 60px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        minHeight: '320px',
-        position: 'relative',
-        overflow: 'hidden'
-    },
-    carouselContent: { maxWidth: '450px', zIndex: 1 },
-    carouselTag: {
-        display: 'inline-block', padding: '4px 12px', background: 'rgba(255,255,255,0.15)',
-        color: '#ffc107', borderRadius: '3px', fontSize: '12px', fontWeight: '700',
-        textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px'
-    },
-    carouselTitle: { fontSize: '38px', fontWeight: '800', color: '#ffffff', margin: '0 0 12px 0', lineHeight: '1.2' },
-    carouselSub: { fontSize: '16px', color: '#b0b0d0', marginBottom: '25px', lineHeight: '1.5' },
-    carouselBtn: {
-        padding: '14px 35px', background: '#2874f0', color: '#ffffff', borderRadius: '3px',
-        textDecoration: 'none', fontWeight: '700', fontSize: '15px', display: 'inline-block'
-    },
-    carouselImage: {
-        width: '400px', height: '280px', objectFit: 'cover', borderRadius: '12px',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.3)', zIndex: 1
-    },
-    slideDots: { position: 'absolute', bottom: '25px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', alignItems: 'center' },
-    dot: { height: '8px', borderRadius: '4px', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 },
-    arrow: {
-        position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-        background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none',
-        width: '45px', height: '45px', borderRadius: '50%', fontSize: '26px',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2
-    }
-};
+const dd = { display: 'block', padding: '10px 16px', borderRadius: '10px', color: '#4c1d95', textDecoration: 'none', fontSize: '13px', fontWeight: '600', transition: 'all 0.2s' };
 
 export default HomePage;

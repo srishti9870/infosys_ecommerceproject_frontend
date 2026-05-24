@@ -1,9 +1,10 @@
 import React from 'react';
 import { getToken } from '../services/api';
-
+import { useTheme } from '../context/ThemeContext';
 const PrivateRoute = ({ children }) => {
     const token = getToken();
-
+	const theme = useTheme();
+	const c = theme.colors;
     if (!token) {
         return (
             <div style={{

@@ -1,0 +1,51 @@
+export const lightTheme = {
+    name: 'light',
+    colors: {
+        primary: '#6366f1',
+        primaryDark: '#4f46e5',
+        secondary: '#06b6d4',
+        accent: '#8b5cf6',
+        success: '#10b981',
+        warning: '#f59e0b',
+        danger: '#ef4444',
+        bg: '#fafbff',
+        bg2: '#f0f0ff',
+        surface: '#ffffff',
+        text: '#1e1b4b',
+        text2: '#6b7280',
+        border: '#e0e7ff',
+        nav: 'rgba(255,255,255,0.9)',
+        glass: 'rgba(255,255,255,0.7)',
+    },
+    gradients: {
+        primary: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        hero: 'linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #6366f1 100%)',
+        glass: 'linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1))',
+    },
+    shadows: {
+        sm: '0 1px 3px rgba(99,102,241,0.08)',
+        md: '0 4px 14px rgba(99,102,241,0.12)',
+        lg: '0 10px 30px rgba(99,102,241,0.15)',
+        xl: '0 20px 60px rgba(99,102,241,0.2)',
+        glow: '0 0 30px rgba(99,102,241,0.3)',
+    },
+    radius: { sm: '8px', md: '12px', lg: '16px', xl: '24px', full: '9999px' },
+    font: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+};
+
+export const darkTheme = {
+    ...lightTheme,
+    name: 'dark',
+    colors: {
+        ...lightTheme.colors,
+        bg: '#0f0a1a',
+        bg2: '#1a1025',
+        surface: '#1a1025',
+        text: '#f0f0ff',
+        text2: '#a5b4fc',
+        border: '#2d1f3a',
+        nav: 'rgba(15,10,26,0.9)',
+        glass: 'rgba(15,10,26,0.7)',
+    },
+};

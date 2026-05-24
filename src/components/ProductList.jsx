@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getProducts, getToken } from '../services/api';
 import { Navigate } from 'react-router-dom';
-
+import { useTheme } from '../context/ThemeContext';
 function ProductList() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);	
+	const theme = useTheme();
+	const c = theme.colors;
 
     useEffect(() => {
         loadProducts();

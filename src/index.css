@@ -93,3 +93,52 @@ body {
 .fade-in-left { animation: fadeInLeft 0.8s ease forwards; }
 .fade-in-right { animation: fadeInRight 0.8s ease forwards; }
 .scale-in { animation: scaleIn 0.6s ease forwards; }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    /* Navbar */
+    nav > div {
+        flex-wrap: wrap;
+        gap: 10px !important;
+        padding: 10px !important;
+    }
+    
+    /* Search bar */
+    input[type="text"] {
+        width: 100% !important;
+        font-size: 12px !important;
+    }
+    
+    /* Cards grid */
+    [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Hero text */
+    h1 {
+        font-size: 28px !important;
+    }
+    
+    /* Buttons */
+    button, a[style*="padding"] {
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Images */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Footer */
+    footer [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: 22px !important; }
+    h2 { font-size: 18px !important; }
+    p { font-size: 13px !important; }
+}

@@ -13,6 +13,8 @@ import CheckoutPage from './components/CheckoutPage';
 import OrdersPage from './components/OrdersPage';
 import ProfilePage from './components/ProfilePage';
 import WishlistPage from './components/WishlistPage';
+import ForgotPassword from './components/ForgotPassword';
+import ProductList from './components/ProductList';
 
 function App() {
     return (
@@ -31,6 +33,9 @@ function App() {
 					<Route path="/orders" element={<OrdersPage />} />
 					<Route path="/profile" element={<ProfilePage />} />
 					<Route path="/wishlist" element={<WishlistPage />} />
+					<Route path="/forgot-password" element={<ForgotPassword />} />
+					<Route path="/products" element={<ProductList />} />
+
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

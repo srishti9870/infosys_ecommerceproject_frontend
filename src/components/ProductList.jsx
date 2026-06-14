@@ -1,169 +1,126 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { getProducts, getToken } from '../services/api';
-import { Navigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { getToken } from '../services/api';
+import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';
+import { Navigate } from 'react-router-dom';
+
+const API_URL = 'http://localhost:8080/api';
+
 function ProductList() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [filteredProducts, setFilteredProducts] = useState([]);	
-	const theme = useTheme();
-	const c = theme.colors;
+    const [searchParams] = useSearchParams();
+    const token = getToken();
+    const theme = useTheme();
+    const c = theme.colors;
+
+    const searchQuery = searchParams.get('search') || '';
+    const categoryFilter = searchParams.get('category') || '';
 
     useEffect(() => {
         loadProducts();
-    }, []);
-
-    useEffect(() => {
-        if (search.trim() === '') {
-            setFilteredProducts(products);
-        } else {
-            const filtered = products.filter(p => 
-                p.name?.toLowerCase().includes(search.toLowerCase()) ||
-                p.category?.toLowerCase().includes(search.toLowerCase())
-            );
-            setFilteredProducts(filtered);
-        }
-    }, [search, products]);
+    }, [searchQuery, categoryFilter]);
 
     const loadProducts = async () => {
+        setLoading(true);
         try {
-            const data = await getProducts();
-            setProducts(data);
-            setFilteredProducts(data);
-        } catch (error) {
-            console.error('Failed to load products');
-        } finally {
-            setLoading(false);
-        }
+            let url = `${API_URL}/products?page=0&size=20`;
+            if (searchQuery) url += `&keyword=${searchQuery}`;
+            if (categoryFilter) url += `&category=${categoryFilter}`;
+
+            const res = await axios.get(url, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = res.data.products || res.data || [];
+            setProducts(Array.isArray(data) ? data : []);
+        } catch (err) {
+            setProducts([]);
+        } finally { setLoading(false); }
     };
 
-    if (!getToken()) return <Navigate to="/login" />;
+    const getImage = (cat) => {
+        const imgs = {
+            'Smartphones': 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&q=80',
+            'Electronics': 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500&q=80',
+            'Laptops': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&q=80',
+            'Fashion': 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=500&q=80',
+            'Sports': 'https://images.unsplash.com/photo-1461896836934-bd45ba4fcf69?w=500&q=80',
+            'Audio': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80',
+            'Wearables': 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80',
+            'Beauty': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc8?w=500&q=80',
+            'Home': 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=500&q=80',
+            'Books': 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=500&q=80',
+            'Gaming': 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=500&q=80',
+        };
+        return imgs[cat] || 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=500&q=80';
+    };
+
+    if (!token) return <Navigate to="/login" />;
 
     return (
-        <div style={styles.page}>
-            <div style={styles.container}>
-                <div style={styles.header}>
-                    <h1 style={styles.heading}>Our Collection</h1>
-                    <p style={styles.subtitle}>{filteredProducts.length} Products Found</p>
-                    
-                    <div style={styles.searchBox}>
-                        <input type="text" placeholder="🔍 Search products..." 
-                            value={search} onChange={(e) => setSearch(e.target.value)}
-                            style={styles.searchInput} />
-                    </div>
+        <div style={{ background: c.bg, minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: c.text }}>
+            
+            {/* HEADER */}
+            <div style={{ background: c.card, borderBottom: `1px solid ${c.border}`, padding: '16px 30px' }}>
+                <div style={{ maxWidth: '1300px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Link to="/home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: c.primary, color: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '15px' }}>E</div>
+                        <span style={{ fontSize: '20px', fontWeight: '800', color: c.text }}>e-shop</span>
+                    </Link>
+                    <Link to="/home" style={{ color: c.text2, textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>← Back to Home</Link>
+                </div>
+            </div>
+
+            <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '30px' }}>
+                
+                {/* Title */}
+                <div style={{ marginBottom: '30px' }}>
+                    <h1 style={{ fontSize: '28px', fontWeight: '800', color: c.text }}>
+                        {categoryFilter ? categoryFilter : searchQuery ? `Results for "${searchQuery}"` : 'All Products'}
+                    </h1>
+                    <p style={{ color: c.text2, fontSize: '14px', marginTop: '5px' }}>
+                        {loading ? 'Loading...' : `${products.length} product${products.length !== 1 ? 's' : ''} found`}
+                    </p>
                 </div>
 
                 {loading ? (
-                    <div style={styles.loading}>
-                        <h2 style={{ color: '#7c5cbf' }}>Loading products...</h2>
+                    <div style={{ textAlign: 'center', padding: '80px', color: c.text2 }}>Loading products...</div>
+                ) : products.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '100px 30px', background: c.card, borderRadius: '20px', border: `1px solid ${c.border}` }}>
+                        <div style={{ fontSize: '60px', marginBottom: '15px' }}>📦</div>
+                        <h3 style={{ fontSize: '20px', fontWeight: '700', color: c.text }}>No products found</h3>
+                        <p style={{ color: c.text2, fontSize: '14px', marginBottom: '20px' }}>Try a different category or search term</p>
+                        <Link to="/home" style={{ color: c.primary, textDecoration: 'none', fontWeight: '600' }}>← Back to Home</Link>
                     </div>
                 ) : (
-                    <div style={styles.grid}>
-                        {filteredProducts.map(product => (
-                            <Link to={`/product/${product.id}`} key={product.id} style={{ textDecoration: 'none' }}>
-                                <div style={styles.card}>
-                                    <div style={styles.imageBox}>
-                                        <span style={styles.emoji}>
-                                            {product.category === 'Electronics' ? '📱' : 
-                                             product.category === 'Sports' ? '👟' : 
-                                             product.category === 'Fashion' ? '👗' : '📦'}
-                                        </span>
-                                        {product.stockQuantity <= 5 && product.stockQuantity > 0 && (
-                                            <span style={styles.badge}>Few Left</span>
-                                        )}
-                                        {product.stockQuantity === 0 && (
-                                            <span style={styles.outBadge}>Sold Out</span>
-                                        )}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '22px' }}>
+                        {products.map(p => (
+                            <Link to={`/product/${p.id}`} key={p.id} style={{ textDecoration: 'none' }}>
+                                <div style={{ background: c.card, borderRadius: '16px', overflow: 'hidden', border: `1px solid ${c.border}`, transition: 'all 0.35s', cursor: 'pointer' }}
+                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.1)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                                    <div style={{ height: '220px', overflow: 'hidden', background: c.bg2 }}>
+                                        <img src={p.imageUrl?.startsWith('/uploads') ? `http://localhost:8080${p.imageUrl}` : getImage(p.category)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     </div>
-                                    <div style={styles.cardBody}>
-                                        <span style={styles.category}>{product.category}</span>
-                                        <h3 style={styles.productName}>{product.name}</h3>
-                                        <p style={styles.description}>{product.description?.substring(0, 50)}...</p>
-                                        <div style={styles.footer}>
-                                            <span style={styles.price}>₹{Number(product.price).toLocaleString()}</span>
-                                            <span style={styles.viewBtn}>View →</span>
+                                    <div style={{ padding: '18px' }}>
+                                        <span style={{ fontSize: '10px', fontWeight: '700', color: c.primary, textTransform: 'uppercase', letterSpacing: '1px' }}>{p.category}</span>
+                                        <h4 style={{ fontSize: '15px', fontWeight: '600', color: c.text, margin: '6px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</h4>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '18px', fontWeight: '700', color: c.text }}>₹{Number(p.price).toLocaleString()}</span>
+                                            <span style={{ fontSize: '11px', fontWeight: '600', color: p.stockQuantity > 0 ? '#059669' : '#dc2626' }}>
+                                                {p.stockQuantity > 0 ? 'In Stock' : 'Out'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
                             </Link>
                         ))}
-                        {filteredProducts.length === 0 && (
-                            <div style={styles.empty}>
-                                <span style={{ fontSize: '80px' }}>🔍</span>
-                                <h3>No products found</h3>
-                                <p>Try a different search term</p>
-                            </div>
-                        )}
                     </div>
                 )}
             </div>
         </div>
     );
 }
-
-const styles = {
-    page: {
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-        fontFamily: "'Inter', 'Segoe UI', sans-serif",
-        padding: '40px 20px'
-    },
-    container: { maxWidth: '1200px', margin: '0 auto' },
-    header: { textAlign: 'center', marginBottom: '40px' },
-    heading: { fontSize: '36px', fontWeight: '900', color: '#2d3436', marginBottom: '5px' },
-    subtitle: { color: '#636e72', fontSize: '16px', marginBottom: '20px' },
-    searchBox: { maxWidth: '400px', margin: '0 auto' },
-    searchInput: {
-        width: '100%', padding: '14px 20px', fontSize: '16px',
-        borderRadius: '30px', border: '1px solid #ddd', outline: 'none',
-        boxShadow: '0 5px 20px rgba(0,0,0,0.1)', boxSizing: 'border-box',
-        textAlign: 'center'
-    },
-    loading: { textAlign: 'center', padding: '100px' },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '25px'
-    },
-    card: {
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-        transition: 'transform 0.3s',
-        cursor: 'pointer'
-    },
-    imageBox: {
-        height: '180px',
-        background: 'linear-gradient(135deg, #667eea22 0%, #764ba222 100%)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        position: 'relative'
-    },
-    emoji: { fontSize: '60px' },
-    badge: {
-        position: 'absolute', top: '10px', right: '10px',
-        backgroundColor: '#fdcb6e', color: '#333', padding: '4px 12px',
-        borderRadius: '12px', fontSize: '11px', fontWeight: '700'
-    },
-    outBadge: {
-        position: 'absolute', top: '10px', right: '10px',
-        backgroundColor: '#ff7675', color: 'white', padding: '4px 12px',
-        borderRadius: '12px', fontSize: '11px', fontWeight: '700'
-    },
-    cardBody: { padding: '20px' },
-    category: {
-        display: 'inline-block', padding: '4px 12px',
-        backgroundColor: '#667eea15', color: '#667eea',
-        borderRadius: '12px', fontSize: '11px', fontWeight: '700', marginBottom: '10px'
-    },
-    productName: { fontSize: '18px', fontWeight: '700', color: '#2d3436', marginBottom: '8px' },
-    description: { color: '#888', fontSize: '13px', marginBottom: '15px' },
-    footer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    price: { fontSize: '22px', fontWeight: '800', color: '#667eea' },
-    viewBtn: { color: '#667eea', fontWeight: '700', fontSize: '13px' },
-    empty: { textAlign: 'center', padding: '80px', gridColumn: '1/-1', color: '#636e72' }
-};
 
 export default ProductList;

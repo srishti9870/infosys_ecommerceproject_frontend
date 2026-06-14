@@ -67,6 +67,7 @@ function OrdersPage() {
                         <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #4c1d95, #7c3aed)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '15px' }}>E</div>
                         <span style={{ fontSize: '20px', fontWeight: '800', color: '#1a0a2e', letterSpacing: '-0.5px' }}>e-shop</span>
                     </Link>
+					
                     <div style={{ display: 'flex', gap: '25px', fontSize: '13px', fontWeight: '500' }}>
                         {['Home', 'Cart', 'Orders'].map(l => (
                             <Link key={l} to={`/${l.toLowerCase() === 'home' ? 'home' : l.toLowerCase()}`} style={{
@@ -77,10 +78,12 @@ function OrdersPage() {
                                 onMouseEnter={e => { e.target.style.background = '#f5f0ff'; e.target.style.color = '#4c1d95'; }}
                                 onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = l === 'Orders' ? '#4c1d95' : '#6b7280'; }}
                             >{l}</Link>
+							
                         ))}
                     </div>
                 </div>
             </nav>
+			
 
             <div style={{ maxWidth: '1300px', margin: '90px auto 50px', padding: '0 30px' }}>
 
